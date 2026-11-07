@@ -81,7 +81,19 @@ async function Order({ params }: { params: PageProps<"/order/[id]">["params"] })
           </div>
         </>
       )}
-      {state === "closed" && (
+      {state === "closed" && order.status === "refunded" && (
+        <>
+          <h1 className={styles.title}>Buyurtma qaytarilgan</h1>
+          <p className={styles.text}>Chiptalar bekor qilindi. Pul to&apos;lov qilingan karta yoki hisobga qaytariladi.</p>
+        </>
+      )}
+      {state === "closed" && order.status === "cancelled" && (
+        <>
+          <h1 className={styles.title}>Buyurtma bekor qilingan</h1>
+          <p className={styles.text}>O&apos;rinlar sotuvga qaytarildi.</p>
+        </>
+      )}
+      {state === "closed" && order.status !== "refunded" && order.status !== "cancelled" && (
         <>
           <h1 className={styles.title}>Buyurtma muddati tugagan</h1>
           <p className={styles.text}>To&apos;lov o&apos;z vaqtida amalga oshirilmagani uchun o&apos;rinlar bo&apos;shatildi.</p>

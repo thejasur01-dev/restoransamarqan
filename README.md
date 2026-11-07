@@ -64,3 +64,27 @@ Mijoz parolsiz, telefon raqami va bir martalik kod bilan kiradi. Kod avval Teleg
 - Hech biri sozlanmagan bo'lsa: lokal muhitda kod ekranda ko'rsatiladi, production'da kod yuborilmaydi.
 - Production'da `AUTH_SECRET` uzun tasodifiy qiymat bo'lishi shart (aks holda server xato beradi).
 - Server orqasidagi proxy (nginx) `X-Real-IP` sarlavhasini o'zi yozishi kerak — so'rovlar cheklovi shunga tayanadi.
+
+## Admin panel — `/admin`
+
+Birinchi adminni yaratish (parol ekranga bir marta chiqadi):
+
+```bash
+npm run admin:create -- siz@example.uz "Ism Familiya" owner
+```
+
+| Bo'lim | Imkoniyatlar |
+|---|---|
+| Hisobotlar | Bugun / 7 / 30 kun daromadi, kunlik grafik, tadbirlar to'lganligi, CSV eksport (Excel uchun) |
+| Tadbirlar | Yaratish/tahrirlash, afisha yuklash, holat (qoralama/e'lon/bekor), narx toifalari, zal: o'rindiqlarni yaratish, toifani o'zgartirish, sotuvdan yopish, kassa orqali sotish, mehmonlar ro'yxati |
+| Buyurtmalar | Qidiruv (№, telefon, email, chipta kodi, tranzaksiya), kontaktni tuzatish, bekor qilish/qaytarish, to'lovni qo'lda tasdiqlash |
+| Chipta tekshirish | Telefon kamerasi bilan QR skaner yoki kodni qo'lda kiritish; bir chipta ikki marta o'tmaydi |
+| Joylar va zallar | Manzil, xarita koordinatasi, zal konstruktori (stollar, qatorlar, bar, sahna) |
+| Tashkilotchilar | Rekvizitlar (tadbir sahifasi pastida ko'rinadi) |
+| Adminlar, Amallar jurnali | Faqat «Egasi» uchun |
+
+Rollar: **Egasi** — hammasi; **Menejer** — adminlar va jurnaldan tashqari hammasi; **Nazoratchi** — faqat chipta tekshirish.
+
+Yuklangan rasmlar `UPLOAD_DIR` (standart `./uploads`) papkasida saqlanadi. Bir nechta server bo'lsa, bu umumiy disk yoki S3 kabi saqlash bo'lishi kerak.
+
+Testlar: `npm run test:admin` (kassa va skaner poygalari, ruxsatlar, qaytarish).

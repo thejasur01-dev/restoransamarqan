@@ -130,7 +130,7 @@ export function HallBuilder({ name, initial }: { name: string; initial: HallBloc
         </div>
 
         <div style={{ border: "1px solid var(--a-border)", borderRadius: 8, background: "#fafbfb", overflow: "auto", maxHeight: 640 }}>
-          <svg viewBox={`0 0 ${layout.width} ${layout.height}`} style={{ width: "100%", minWidth: 360, display: "block" }}>
+          <svg viewBox={`0 0 ${layout.width} ${layout.height}`} style={{ width: "100%", maxWidth: layout.width * 1.2, minWidth: 360, display: "block", margin: "0 auto" }}>
             {blocks.map((b) => {
               const f = blockFootprint(b);
               return (

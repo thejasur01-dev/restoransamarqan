@@ -153,8 +153,13 @@
   border-radius: 8px;
 }
 
-.a-card + .a-card {
+.a-card + .a-card,
+.a-grid + .a-card {
   margin-top: 16px;
+}
+
+.a-grid > .a-card + .a-card {
+  margin-top: 0;
 }
 
 .a-card h2 {
