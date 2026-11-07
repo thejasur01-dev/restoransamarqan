@@ -15,6 +15,13 @@
       "when": 1794037528028,
       "tag": "0001_customers_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794062035656,
+      "tag": "0002_admin_panel",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -41,6 +42,8 @@ export const venues = pgTable("venues", {
   // Static decorations of the hall plan (stage, bar, table outlines).
   // Seats themselves live in event_seats so each event has its own inventory.
   layout: jsonb("layout").$type<HallLayout>(),
+  // Hall builder input (tables, rows, bar, stage); layout and seats are generated from it
+  blocks: jsonb("blocks").$type<HallBlock[]>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -66,6 +69,9 @@ export const events = pgTable(
     status: eventStatus("status").notNull().default("draft"),
     // Seats held in a cart are released after this many minutes
     holdMinutes: smallint("hold_minutes").notNull().default(15),
+    // Copy of the venue plan taken when seats were generated, so later venue edits
+    // can't misalign an event whose seats are already on sale
+    layout: jsonb("layout").$type<HallLayout>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -218,6 +224,8 @@ export const orderItems = pgTable(
     price: integer("price").notNull(),
     // Printed as a QR code on the ticket; issued only once the order is paid
     ticketCode: text("ticket_code"),
+    checkedInAt: timestamp("checked_in_at", { withTimezone: true }),
+    checkedInBy: integer("checked_in_by").references(() => admins.id, { onDelete: "set null" }),
   },
   (t) => [
     index("order_items_order_idx").on(t.orderId),
@@ -225,6 +233,71 @@ export const orderItems = pgTable(
     uniqueIndex("order_items_ticket_code_uq").on(t.ticketCode),
   ],
 );
+
+export const adminRole = pgEnum("admin_role", ["owner", "manager", "checker"]);
+
+export const admins = pgTable(
+  "admins",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull(),
+    name: text("name").notNull(),
+    passwordHash: text("password_hash").notNull(),
+    role: adminRole("role").notNull().default("manager"),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("admins_email_uq").on(t.email)],
+);
+
+export const adminSessions = pgTable(
+  "admin_sessions",
+  {
+    id: serial("id").primaryKey(),
+    tokenHash: text("token_hash").notNull(),
+    adminId: integer("admin_id")
+      .notNull()
+      .references(() => admins.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("admin_sessions_token_uq").on(t.tokenHash), index("admin_sessions_admin_idx").on(t.adminId)],
+);
+
+// Who changed what and when; never updated, only appended
+export const adminAudit = pgTable(
+  "admin_audit",
+  {
+    id: serial("id").primaryKey(),
+    adminId: integer("admin_id").references(() => admins.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    entity: text("entity").notNull(),
+    entityId: text("entity_id"),
+    details: jsonb("details"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("admin_audit_created_idx").on(t.createdAt), index("admin_audit_entity_idx").on(t.entity, t.entityId)],
+);
+
+/** Hall builder blocks. Coordinates are in plan units (the SVG viewBox). */
+export type HallBlock =
+  | {
+      kind: "tables";
+      id: string;
+      section: string;
+      x: number;
+      y: number;
+      rows: number;
+      cols: number;
+      seatsPerTable: 2 | 4 | 6 | 8;
+      startNumber: number;
+      gapX: number;
+      gapY: number;
+    }
+  | { kind: "rows"; id: string; section: string; x: number; y: number; rows: number; seatsPerRow: number; startRow: number; spacing: number; rowGap: number }
+  | { kind: "bar"; id: string; section: string; x: number; y: number; seats: number; spacing: number }
+  | { kind: "stage"; id: string; x: number; y: number; width: number; label: string };
 
 export type HallLayout = {
   width: number;

@@ -15,7 +15,8 @@
     "test:sales": "node tests/sale-api.test.mjs",
     "test:payment": "node --env-file=.env.local --conditions=react-server --import tsx tests/payment.test.mts",
     "test:auth": "node tests/auth.test.mjs",
-    "sms:test": "node --env-file=.env.local --import tsx scripts/sms-test.mts"
+    "sms:test": "node --env-file=.env.local --import tsx scripts/sms-test.mts",
+    "admin:create": "node --env-file=.env.local --import tsx scripts/admin-create.mts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
