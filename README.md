@@ -59,8 +59,8 @@ Testlar bazadagi ma'lumotni o'zgartiradi — faqat lokal bazada ishga tushiring.
 
 Mijoz parolsiz, telefon raqami va bir martalik kod bilan kiradi. Kod avval Telegram orqali yuboriladi, bo'lmasa SMS orqali.
 
-- **Telegram Gateway** — https://gateway.telegram.org da akkaunt oching, balansni to'ldiring, tokenni  ga yozing. Narx: ~/usr/bin/bash.01 / yetkazilgan kod.
-- **Eskiz SMS** — https://eskiz.uz da ro'yxatdan o'ting, ,  ni yozing. SMS matni Eskiz kabinetida **shablon sifatida tasdiqlangan bo'lishi shart** —  aynan shu shablonga mos kelsin.
+- **Telegram Gateway** — https://gateway.telegram.org da akkaunt oching, balansni to'ldiring, tokenni `TELEGRAM_GATEWAY_TOKEN` ga yozing. Narx: ~$0.01 / yetkazilgan kod.
+- **Eskiz SMS** — https://eskiz.uz da ro'yxatdan o'ting, `ESKIZ_EMAIL` va `ESKIZ_PASSWORD` ni yozing. SMS matni Eskiz kabinetida **shablon sifatida tasdiqlangan bo'lishi shart** — `ESKIZ_TEMPLATE` aynan shu shablonga mos kelsin.
 - Hech biri sozlanmagan bo'lsa: lokal muhitda kod ekranda ko'rsatiladi, production'da kod yuborilmaydi.
-- Production'da  uzun tasodifiy qiymat bo'lishi shart (aks holda server xato beradi).
-- Server orqasidagi proxy (nginx)  sarlavhasini o'zi yozishi kerak — so'rovlar cheklovi shunga tayanadi.
+- Production'da `AUTH_SECRET` uzun tasodifiy qiymat bo'lishi shart (aks holda server xato beradi).
+- Server orqasidagi proxy (nginx) `X-Real-IP` sarlavhasini o'zi yozishi kerak — so'rovlar cheklovi shunga tayanadi.
