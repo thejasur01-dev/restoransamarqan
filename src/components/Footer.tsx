@@ -4,7 +4,8 @@ import { site } from "@/lib/site";
 import { Logo } from "./Logo";
 import styles from "./Footer.module.css";
 
-const PAYMENT_METHODS = ["CLICK", "Payme", "UZCARD", "HUMO", "VISA", "Mastercard"];
+// Only methods that are actually accepted (Click covers Uzcard and Humo cards)
+const PAYMENT_METHODS = ["CLICK", "UZCARD", "HUMO"];
 
 function Socials() {
   return (

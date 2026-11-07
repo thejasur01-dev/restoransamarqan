@@ -130,8 +130,8 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
 
             <label className={styles.field}>
               <span>Email</span>
+              {/* No "tickets will be emailed" hint until ticket delivery actually exists */}
               <input type="email" inputMode="email" autoComplete="email" required maxLength={200} value={email} onChange={(e) => setEmail(e.target.value)} />
-              <small>Chiptalar shu manzilga yuboriladi</small>
             </label>
 
             <label className={styles.field}>
