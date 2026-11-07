@@ -9,6 +9,15 @@ const req = (path, token, body, headers = {}) =>
   });
 const check = (name, ok, extra = "") => console.log(`${ok ? "PASS" : "FAIL"}  ${name} ${extra}`);
 
+/** Signs in through the real API using the dev-mode code; returns the session cookie value. */
+async function signIn(phone) {
+  const post = (path, body) =>
+    fetch(`http://localhost:3000/api/auth/${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const { devCode } = await (await post("code", { phone })).json();
+  const res = await post("verify", { phone, code: devCode });
+  return res.headers.getSetCookie().find((c) => c.startsWith("sid="))?.split(";")[0].slice(4);
+}
+
 let map = await (await req("/seats")).json();
 const free = map.seats.filter((s) => s.state === "free" && s.section === "Stollar");
 const groups = [...new Set(free.map((s) => s.group))];
@@ -40,18 +49,21 @@ await req("/hold", winner, { seatId: target.id, action: "remove" });
 const other = tokens.find((t) => t !== winner);
 check("released table can be taken by another buyer", (await req("/hold", other, { seatId: target.id, action: "add" })).status === 200);
 
-// 5) order validation & creation
-const good = { email: "Test@Example.uz", phone: "90 123 45 67", comment: "", acceptRules: true };
-check("bad phone -> 400", (await req("/order", winner, { ...good, phone: "12345" })).status === 400);
-check("bad email -> 400", (await req("/order", winner, { ...good, email: "x@" })).status === 400);
-check("rules not accepted -> 400", (await req("/order", winner, { ...good, acceptRules: false })).status === 400);
-check("no cart cookie -> 409", (await req("/order", null, good)).status === 409);
-check("empty cart -> 409", (await req("/order", uuid(), good)).status === 409);
-check("form post (non-JSON) -> 415", (await fetch(BASE + "/order", { method: "POST", headers: { cookie: `cart=${winner}`, "content-type": "application/x-www-form-urlencoded" }, body: "a=1" })).status === 415);
-const ord = await req("/order", winner, good);
+// 5) order validation & creation (requires a verified phone; dev mode returns the code)
+const good = { email: "Test@Example.uz", comment: "", acceptRules: true };
+check("not signed in -> 401", (await req("/order", winner, good)).status === 401);
+const sid = await signIn(`+99890${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`);
+const auth = { cookie: `cart=${winner}; sid=${sid}` };
+check("bad email -> 400", (await req("/order", winner, { ...good, email: "x@" }, auth)).status === 400);
+check("rules not accepted -> 400", (await req("/order", winner, { ...good, acceptRules: false }, auth)).status === 400);
+check("no cart cookie -> 409", (await req("/order", null, good, { cookie: `sid=${sid}` })).status === 409);
+check("empty cart -> 409", (await req("/order", null, good, { cookie: `cart=${uuid()}; sid=${sid}` })).status === 409);
+check("form post (non-JSON) -> 415", (await fetch(BASE + "/order", { method: "POST", headers: { ...auth, "content-type": "application/x-www-form-urlencoded" }, body: "a=1" })).status === 415);
+check("email is optional", (await req("/order", winner, { ...good, email: "" }, auth)).status === 201);
+const ord = await req("/order", winner, good, auth);
 const ordBody = await ord.json();
 check("order created -> 201", ord.status === 201 && ordBody.orderId, JSON.stringify(ordBody));
-const ord2 = await (await req("/order", winner, good)).json();
+const ord2 = await (await req("/order", winner, good, auth)).json();
 console.log("orders:", ordBody.orderId, ord2.orderId);
 
 // 6) garbage input

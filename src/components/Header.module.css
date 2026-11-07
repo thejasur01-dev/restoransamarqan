@@ -37,6 +37,22 @@
   width: 265px;
 }
 
+.myTickets {
+  position: absolute;
+  top: 18px;
+  right: var(--gutter);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--c-brand-light);
+  font-size: 15px;
+  transition: color 0.2s;
+}
+
+.myTickets:hover {
+  color: #fff;
+}
+
 @media (max-width: 1023px) {
   .tagline {
     display: none;
@@ -62,5 +78,26 @@
   .search {
     width: 100%;
     margin-top: 28px;
+  }
+
+  /* Icon-only in the corner on phones */
+  .myTickets {
+    top: 14px;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+
+  .myTickets span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .myTickets svg {
+    width: 24px;
+    height: 24px;
   }
 }

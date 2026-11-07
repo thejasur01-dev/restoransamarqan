@@ -1,14 +1,43 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import QRCode from "qrcode";
 import { Suspense } from "react";
 import { Spinner } from "@/components/Spinner";
 import { formatEventDate, formatPrice } from "@/lib/format";
 import { formatUzPhone } from "@/lib/phone";
-import { getOrder } from "@/lib/seating";
+import { formatTicketCode, getOrder } from "@/lib/seating";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = { title: "Buyurtma", robots: { index: false, follow: false } };
+
+async function Tickets({ items, title }: { items: Array<{ row: string; place: string; section: string; ticketCode: string | null }>; title: string }) {
+  const tickets = await Promise.all(
+    items
+      .filter((i) => i.ticketCode)
+      .map(async (i) => ({
+        ...i,
+        // Generated from our own A-Z/2-9 code, so the SVG markup is safe to inline
+        svg: await QRCode.toString(i.ticketCode!, { type: "svg", margin: 1, errorCorrectionLevel: "M" }),
+      })),
+  );
+  return (
+    <div className={styles.tickets}>
+      {tickets.map((t) => (
+        <figure key={t.ticketCode} className={styles.ticket}>
+          <div className={styles.qr} role="img" aria-label={`QR-kod: ${formatTicketCode(t.ticketCode!)}`} dangerouslySetInnerHTML={{ __html: t.svg }} />
+          <figcaption>
+            <b>{title}</b>
+            <span>
+              {t.row}-qator, {t.place}-o&apos;rin · {t.section}
+            </span>
+            <code>{formatTicketCode(t.ticketCode!)}</code>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  );
+}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -25,7 +54,14 @@ async function Order({ params }: { params: PageProps<"/order/[id]">["params"] })
     <div className={styles.panel}>
       <p className={styles.number}>Buyurtma № {order.number}</p>
 
-      {state === "paid" && <h1 className={styles.title}>To&apos;lov qabul qilindi</h1>}
+      {state === "paid" && (
+        <>
+          <h1 className={styles.title}>To&apos;lov qabul qilindi</h1>
+          <p className={styles.text}>
+            Kirishda chipta QR-kodini ko&apos;rsating. Chiptalar doim <Link href="/my">«Mening chiptalarim»</Link> bo&apos;limida turadi.
+          </p>
+        </>
+      )}
       {state === "pending" && (
         <>
           <h1 className={styles.title}>Buyurtma qabul qilindi</h1>
@@ -49,6 +85,8 @@ async function Order({ params }: { params: PageProps<"/order/[id]">["params"] })
           {formatEventDate(order.event.startsAt)} · {order.event.venueName}, {order.event.city}, {order.event.address}
         </p>
       </div>
+
+      {state === "paid" && <Tickets items={order.items} title={order.event.title} />}
 
       <ul className={styles.items}>
         {order.items.map((i, idx) => (

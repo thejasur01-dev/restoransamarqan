@@ -10,12 +10,13 @@ import { seatLabel } from "./labels";
 import { formatTimer, useCountdown } from "./useCountdown";
 import styles from "./BuyWidget.module.css";
 
-type Props = { slug: string; initialMap: SeatMap; onSale: boolean };
+type Props = { slug: string; initialMap: SeatMap; onSale: boolean; initialCustomerPhone: string | null };
 type Toast = { kind: "info" | "error" | "hot"; title?: string; text: string } | null;
 
 const POLL_MS = 15_000;
 
-export function BuyWidget({ slug, initialMap, onSale }: Props) {
+export function BuyWidget({ slug, initialMap, onSale, initialCustomerPhone }: Props) {
+  const [customerPhone, setCustomerPhone] = useState(initialCustomerPhone);
   const [map, setMap] = useState(initialMap);
   const [clockOffset, setClockOffset] = useState(() => initialMap.serverNow - Date.now());
   const [busyGroup, setBusyGroup] = useState<string | null>(null);
@@ -204,6 +205,8 @@ export function BuyWidget({ slug, initialMap, onSale }: Props) {
           items={cart.map((s) => ({ id: s.id, label: seatLabel(s), section: s.section, price: priceOf.get(s.categoryId)?.price ?? 0 }))}
           total={total}
           secondsLeft={secondsLeft}
+          customerPhone={customerPhone}
+          onLogin={setCustomerPhone}
           onClose={() => setCheckoutOpen(false)}
           onCartGone={() => {
             setCheckoutOpen(false);

@@ -235,3 +235,53 @@
     border-radius: 12px 12px 0 0;
   }
 }
+
+.verified {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  background: #f1faf9;
+  font-size: 15px;
+}
+
+.verified > span:first-child {
+  color: #777;
+  font-size: 13px;
+}
+
+.verified b {
+  font-weight: 500;
+}
+
+.badge {
+  color: var(--c-brand);
+  font-size: 13px;
+}
+
+.field .optional {
+  display: inline;
+  margin: 0 0 0 4px;
+  color: #999;
+  font-size: 12px;
+}
+
+.suggestion {
+  display: block;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #8a5a00;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestion b {
+  color: var(--c-brand);
+  font-weight: 500;
+  text-decoration: underline;
+}

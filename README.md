@@ -25,7 +25,10 @@ Bazani to'xtatish: `npm run db stop`.
 | `src/app/api/events` | "Yana tadbirlar" tugmasi uchun JSON |
 | `src/app/(checkout)/e/[slug]/buy` | Zal sxemasi, savat, 15 daqiqalik bron, buyurtma formasi |
 | `src/app/api/events/[slug]/{seats,hold,order}` | O'rindiqlar holati, bron qilish/bo'shatish, buyurtma yaratish |
-| `src/app/(site)/order/[id]` | Buyurtma holati sahifasi |
+| `src/app/(site)/order/[id]` | Buyurtma holati, to'langanda QR-kodli chiptalar |
+| `src/app/(site)/my` | «Mening chiptalarim» kabineti (telefon + kod bilan kirish) |
+| `src/lib/auth.ts`, `src/lib/otp-providers.ts` | Kirish kodlari (Telegram Gateway → Eskiz SMS), sessiyalar |
+| `src/lib/rate-limit.ts` | So'rovlar cheklovi (Postgres'da, barcha serverlar uchun umumiy) |
 | `src/lib/seating.ts` | Bron, buyurtma va to'lovni tasdiqlash mantig'i (tranzaksiyalar bilan) |
 | `src/lib/events.ts` | Ma'lumot so'rovlari (`"use cache"`, 1 daqiqalik kesh, `events` tegi) |
 | `src/db/schema.ts` | Baza sxemasi: tadbirlar, joylar, o'rindiqlar, buyurtmalar |
@@ -45,8 +48,19 @@ Bazani to'xtatish: `npm run db stop`.
 
 ```bash
 npm run db:seed && npm run dev   # alohida terminalda
+npm run test:auth                # kod yuborish/tekshirish, urinishlar limiti, sessiya
 npm run test:sales               # 30 ta xaridor bitta stol uchun poyga, limitlar, validatsiya
 npm run test:payment             # to'lovni tasdiqlash: idempotentlik, muddati o'tgan bron, takroriy tranzaksiya
 ```
 
 Testlar bazadagi ma'lumotni o'zgartiradi — faqat lokal bazada ishga tushiring.
+
+## Kirish kodlari (Telegram / SMS)
+
+Mijoz parolsiz, telefon raqami va bir martalik kod bilan kiradi. Kod avval Telegram orqali yuboriladi, bo'lmasa SMS orqali.
+
+- **Telegram Gateway** — https://gateway.telegram.org da akkaunt oching, balansni to'ldiring, tokenni  ga yozing. Narx: ~/usr/bin/bash.01 / yetkazilgan kod.
+- **Eskiz SMS** — https://eskiz.uz da ro'yxatdan o'ting, ,  ni yozing. SMS matni Eskiz kabinetida **shablon sifatida tasdiqlangan bo'lishi shart** —  aynan shu shablonga mos kelsin.
+- Hech biri sozlanmagan bo'lsa: lokal muhitda kod ekranda ko'rsatiladi, production'da kod yuborilmaydi.
+- Production'da  uzun tasodifiy qiymat bo'lishi shart (aks holda server xato beradi).
+- Server orqasidagi proxy (nginx)  sarlavhasini o'zi yozishi kerak — so'rovlar cheklovi shunga tayanadi.

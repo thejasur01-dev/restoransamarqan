@@ -110,7 +110,7 @@ async function main() {
   writePosters();
 
   await db.execute(
-    sql`truncate table order_items, orders, event_seats, price_categories, events, venues, organizers restart identity cascade`,
+    sql`truncate table order_items, orders, sessions, login_codes, customers, rate_limits, event_seats, price_categories, events, venues, organizers restart identity cascade`,
   );
 
   const [org] = await db

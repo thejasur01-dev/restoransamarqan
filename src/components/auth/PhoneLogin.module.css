@@ -1,0 +1,123 @@
+.box {
+  display: flex;
+  flex-direction: column;
+}
+
+.hint {
+  margin-bottom: 16px;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.label {
+  margin-bottom: 6px;
+  color: #555;
+  font-size: 14px;
+}
+
+.phone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1px solid #d6d6d6;
+  border-radius: 3px;
+  background: #fff;
+  font-size: 18px;
+}
+
+.phone:focus-within,
+.code:focus {
+  border-color: var(--c-brand);
+}
+
+.phone span {
+  color: #555;
+}
+
+.phone input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  border: 0;
+  outline: none;
+  font-size: 18px;
+}
+
+.code {
+  height: 56px;
+  padding: 0 14px;
+  border: 1px solid #d6d6d6;
+  border-radius: 3px;
+  outline: none;
+  font-size: 26px;
+  letter-spacing: 10px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.submit {
+  width: 100%;
+  height: 52px;
+  margin-top: 16px;
+  font-size: 18px;
+  line-height: 52px;
+}
+
+.submit:disabled {
+  background: var(--c-muted-btn);
+  cursor: not-allowed;
+}
+
+.sentTo {
+  margin-bottom: 14px;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sentTo b {
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dev {
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  background: #fff7e6;
+  color: #6b4e00;
+  font-size: 13px;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-brand);
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link:disabled {
+  color: #aaa;
+}
+
+.resend {
+  display: flex;
+  gap: 18px;
+  margin-top: 12px;
+  color: #888;
+  font-size: 14px;
+}
+
+.error {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #fdecec;
+  color: #b42323;
+  font-size: 14px;
+}

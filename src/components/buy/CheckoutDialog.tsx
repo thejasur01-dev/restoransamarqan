@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { PhoneLogin } from "@/components/auth/PhoneLogin";
+import { suggestEmail } from "@/lib/email-typo";
 import { formatEventDate, formatPrice } from "@/lib/format";
 import { formatTimer } from "./useCountdown";
 import styles from "./CheckoutDialog.module.css";
@@ -14,32 +16,20 @@ type Props = {
   items: Array<{ id: number; label: string; section: string; price: number }>;
   total: number;
   secondsLeft: number | null;
+  /** Verified phone of the signed-in customer, if any */
+  customerPhone: string | null;
+  onLogin: (phone: string) => void;
   onClose: () => void;
   onCartGone: () => void;
 };
 
-/**
- * The 9-digit local number from whatever was typed. People often type the country code
- * themselves ("+998 93 ..."); once more than 9 digits are present a leading 998 is dropped.
- * A local number alone never exceeds 9 digits, so numbers starting with 99 8.. stay intact.
- */
-export function localPhoneDigits(raw: string) {
-  const d = raw.replace(/\D/g, "").slice(0, 12);
-  return d.length > 9 && d.startsWith("998") ? d.slice(3) : d.slice(0, 9);
-}
+const prettyPhone = (p: string) => p.replace(/^\+998(\d{2})(\d{3})(\d{2})(\d{2})$/, "+998 $1 $2 $3 $4");
 
-/** "901234567" -> "90 123 45 67" */
-function formatLocalPhone(local: string) {
-  return [local.slice(0, 2), local.slice(2, 5), local.slice(5, 7), local.slice(7, 9)].filter(Boolean).join(" ");
-}
-
-export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLeft, onClose, onCartGone }: Props) {
+export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLeft, customerPhone, onLogin, onClose, onCartGone }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<"confirm" | "form">("confirm");
   const [email, setEmail] = useState("");
-  // While "+998..." is being typed the leading 998 sits here until the 10th digit reveals it
-  const [phoneRaw, setPhoneRaw] = useState("");
-  const phoneLocal = phoneRaw;
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   const [comment, setComment] = useState("");
   const [accept, setAccept] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +38,7 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
 
   useEffect(() => {
     panelRef.current?.querySelector<HTMLElement>("input, button")?.focus();
-  }, [step]);
+  }, [step, customerPhone]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && !submitting && onClose();
@@ -65,7 +55,7 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
       const res = await fetch(`/api/events/${slug}/order`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, phone: `+998${phoneLocal}`, comment, acceptRules: accept }),
+        body: JSON.stringify({ email: email.trim() || undefined, comment, acceptRules: accept }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -122,36 +112,67 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
               </button>
             </div>
           </>
+        ) : !customerPhone ? (
+          <>
+            <h2 id="checkout-title" className={styles.title}>
+              Telefon raqamingiz
+            </h2>
+            <PhoneLogin
+              onVerified={onLogin}
+              hint="Chiptalaringiz shu raqamga bog'lanadi: istalgan qurilmadan «Mening chiptalarim» bo'limida ko'rasiz."
+            />
+            <div className={styles.actions} style={{ marginTop: 10 }}>
+              <button type="button" className={styles.secondary} onClick={() => setStep("confirm")}>
+                Orqaga
+              </button>
+            </div>
+          </>
         ) : (
           <form onSubmit={submit} noValidate>
             <h2 id="checkout-title" className={styles.title}>
               Buyurtmani rasmiylashtirish
             </h2>
 
-            <label className={styles.field}>
-              <span>Email</span>
-              {/* No "tickets will be emailed" hint until ticket delivery actually exists */}
-              <input type="email" inputMode="email" autoComplete="email" required maxLength={200} value={email} onChange={(e) => setEmail(e.target.value)} />
-            </label>
-
-            <label className={styles.field}>
+            <div className={styles.verified}>
               <span>Telefon</span>
-              <div className={styles.phone}>
-                <span>+998</span>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  autoComplete="tel-national"
-                  required
-                  placeholder="90 123 45 67"
-                  value={formatLocalPhone(phoneLocal)}
-                  onChange={(e) => setPhoneRaw(localPhoneDigits(e.target.value))}
-                />
-              </div>
+              <b>{prettyPhone(customerPhone)}</b>
+              <span className={styles.badge}>✓ tasdiqlangan</span>
+            </div>
+
+            <label className={styles.field}>
+              <span>
+                Email <small className={styles.optional}>(ixtiyoriy)</small>
+              </span>
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                maxLength={200}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setEmailSuggestion(null);
+                }}
+                onBlur={() => setEmailSuggestion(suggestEmail(email.trim()))}
+              />
+              {emailSuggestion && (
+                <button
+                  type="button"
+                  className={styles.suggestion}
+                  onClick={() => {
+                    setEmail(emailSuggestion);
+                    setEmailSuggestion(null);
+                  }}
+                >
+                  <b>{emailSuggestion}</b> demoqchimisiz?
+                </button>
+              )}
             </label>
 
             <label className={styles.field}>
-              <span>Izoh</span>
+              <span>
+                Izoh <small className={styles.optional}>(ixtiyoriy)</small>
+              </span>
               <textarea rows={2} maxLength={500} value={comment} onChange={(e) => setComment(e.target.value)} />
             </label>
 

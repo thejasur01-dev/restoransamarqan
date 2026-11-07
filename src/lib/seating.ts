@@ -1,5 +1,6 @@
 import "server-only";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { randomInt } from "node:crypto";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { HallLayout } from "@/db/schema";
 import { UPCOMING_GRACE } from "./events";
@@ -203,7 +204,7 @@ async function cancelPendingOrders(tx: Tx, eventId: number, token: string) {
     .where(and(eq(orders.eventId, eventId), eq(orders.holdToken, token), eq(orders.status, "pending")));
 }
 
-export type Buyer = { email: string; phone: string; comment: string | null };
+export type Buyer = { customerId: number; phone: string; email: string | null; comment: string | null };
 
 /** Turns the visitor's current cart into a pending order awaiting payment. */
 export async function createOrder(event: SaleEvent | null, token: string, buyer: Buyer) {
@@ -229,7 +230,7 @@ export async function createOrder(event: SaleEvent | null, token: string, buyer:
 
     const [order] = await tx
       .insert(orders)
-      .values({ eventId: event.id, holdToken: token, email: buyer.email, phone: buyer.phone, comment: buyer.comment, total, expiresAt })
+      .values({ eventId: event.id, holdToken: token, customerId: buyer.customerId, email: buyer.email, phone: buyer.phone, comment: buyer.comment, total, expiresAt })
       .returning({ id: orders.id, number: orders.number, total: orders.total });
 
     await tx.insert(orderItems).values(seats.map((s) => ({ orderId: order.id, seatId: s.id, price: s.price })));
@@ -293,6 +294,11 @@ async function markOrderPaidTx(orderId: string, provider: string, transactionId:
       throw new SaleError("expired", "Buyurtma muddati tugagan", 409);
     }
 
+    // One scannable code per ticket, issued only now that the money is confirmed
+    for (const item of items) {
+      await tx.update(orderItems).set({ ticketCode: newTicketCode() }).where(and(eq(orderItems.orderId, orderId), eq(orderItems.seatId, item.seatId)));
+    }
+
     await tx
       .update(orders)
       .set({ status: "paid", paidAt: new Date(), paymentProvider: provider, providerTransactionId: transactionId })
@@ -323,7 +329,14 @@ export async function getOrder(orderId: string) {
   if (!order) return null;
 
   const items = await db
-    .select({ section: eventSeats.section, row: eventSeats.row, place: eventSeats.place, price: orderItems.price, category: priceCategories.name })
+    .select({
+      section: eventSeats.section,
+      row: eventSeats.row,
+      place: eventSeats.place,
+      price: orderItems.price,
+      category: priceCategories.name,
+      ticketCode: orderItems.ticketCode,
+    })
     .from(orderItems)
     .innerJoin(eventSeats, eq(eventSeats.id, orderItems.seatId))
     .innerJoin(priceCategories, eq(priceCategories.id, eventSeats.priceCategoryId))
@@ -331,4 +344,43 @@ export async function getOrder(orderId: string) {
     .orderBy(eventSeats.id);
 
   return { ...order, items };
+}
+
+// No 0/O/1/I so codes can be read aloud or typed at the door without confusion
+const TICKET_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+
+/** 10 characters = 50 bits of randomness; uniqueness is also enforced by a database index. */
+function newTicketCode() {
+  let code = "";
+  for (let i = 0; i < 10; i++) code += TICKET_ALPHABET[randomInt(TICKET_ALPHABET.length)];
+  return code;
+}
+
+export function formatTicketCode(code: string) {
+  return `${code.slice(0, 5)}-${code.slice(5)}`;
+}
+
+/** Orders for the customer's cabinet, newest event first. Cancelled/expired carts are left out. */
+export async function listCustomerOrders(customerId: number) {
+  return db
+    .select({
+      id: orders.id,
+      number: orders.number,
+      status: orders.status,
+      total: orders.total,
+      expired: sql<boolean>`${orders.status} = 'pending' and ${orders.expiresAt} <= now()`,
+      tickets: sql<number>`(select count(*)::int from ${orderItems} where ${orderItems.orderId} = ${orders.id})`,
+      upcoming: sql<boolean>`${events.startsAt} >= now() - ${UPCOMING_GRACE}`,
+      event: { slug: events.slug, title: events.title, startsAt: events.startsAt, imageUrl: events.imageUrl, venueName: venues.name, city: venues.city },
+    })
+    .from(orders)
+    .innerJoin(events, eq(events.id, orders.eventId))
+    .innerJoin(venues, eq(venues.id, events.venueId))
+    .where(
+      and(
+        eq(orders.customerId, customerId),
+        sql`(${orders.status} = 'paid' or (${orders.status} = 'pending' and ${orders.expiresAt} > now()))`,
+      ),
+    )
+    .orderBy(desc(events.startsAt));
 }
