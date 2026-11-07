@@ -77,7 +77,19 @@ const dev: Provider = {
   },
 };
 
+/**
+ * LOGIN_CODE_DELIVERY=live sends real Telegram/SMS messages; "dev" shows the code on screen.
+ * Defaults: live in production, dev elsewhere, so local work never spends money or hits
+ * provider restrictions (e.g. Eskiz test mode only accepts its own sample texts).
+ */
+function liveDelivery() {
+  const mode = process.env.LOGIN_CODE_DELIVERY;
+  if (process.env.NODE_ENV === "production") return mode !== "dev";
+  return mode === "live";
+}
+
 function enabledProviders(): Provider[] {
+  if (!liveDelivery()) return process.env.NODE_ENV === "production" ? [] : [dev];
   const list: Provider[] = [];
   if (process.env.TELEGRAM_GATEWAY_TOKEN) list.push(telegram);
   if (process.env.ESKIZ_EMAIL && process.env.ESKIZ_PASSWORD) list.push(sms);
