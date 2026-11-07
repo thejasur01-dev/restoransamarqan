@@ -1,0 +1,32 @@
+.page {
+  padding-top: 115px;
+  padding-bottom: 60px;
+}
+
+.title {
+  margin-bottom: 42px;
+  color: var(--c-text);
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.query {
+  display: block;
+  margin-top: 8px;
+  color: var(--c-text-2);
+  font-size: 20px;
+  font-weight: 300;
+}
+
+@media (max-width: 767px) {
+  .page {
+    padding-top: 28px;
+  }
+
+  .title {
+    margin-bottom: 28px;
+    font-size: 28px;
+    font-weight: 300;
+  }
+}

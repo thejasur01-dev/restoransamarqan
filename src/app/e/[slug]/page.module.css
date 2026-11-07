@@ -1,0 +1,20 @@
+.page {
+  padding: 60px 16px 80px;
+}
+
+.panel {
+  max-width: var(--wrapper);
+  margin: 0 auto;
+  padding: 60px 68px 72px;
+  background: #fff;
+}
+
+@media (max-width: 767px) {
+  .page {
+    padding: 0;
+  }
+
+  .panel {
+    padding: 28px 16px 40px;
+  }
+}

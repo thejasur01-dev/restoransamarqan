@@ -1,0 +1,66 @@
+.header {
+  position: relative;
+  height: 182px;
+  overflow: hidden;
+  /* Stage-light backdrop drawn in CSS: no image request on the critical path */
+  background:
+    radial-gradient(ellipse 420px 180px at 18% 120%, rgba(59, 217, 204, 0.18), transparent 70%),
+    radial-gradient(ellipse 520px 220px at 62% 130%, rgba(0, 0, 0, 0.45), transparent 70%),
+    radial-gradient(ellipse 300px 160px at 88% -10%, rgba(59, 217, 204, 0.14), transparent 70%),
+    linear-gradient(180deg, #08443f 0%, #0a4f49 55%, #073b37 100%);
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  height: 100%;
+}
+
+.logo {
+  margin-top: 52px;
+  width: 235px;
+  flex-shrink: 0;
+}
+
+.tagline {
+  padding: 62px 0 0 54px;
+  color: var(--c-brand-tagline);
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 22px;
+}
+
+.search {
+  margin-left: auto;
+  margin-top: 50px;
+  width: 265px;
+}
+
+@media (max-width: 1023px) {
+  .tagline {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    height: 200px;
+  }
+
+  .inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .logo {
+    width: auto;
+    margin-top: 38px;
+    text-align: center;
+  }
+
+  .search {
+    width: 100%;
+    margin-top: 28px;
+  }
+}

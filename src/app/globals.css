@@ -1,0 +1,134 @@
+:root {
+  --c-brand: #009589;
+  --c-brand-hover: #007f74;
+  --c-brand-light: #3bd9cc;
+  --c-brand-title-hover: #36c2b6;
+  --c-brand-tagline: #2b9991;
+  --c-red: #ea5454;
+  --c-red-hover: #d94545;
+  --c-text: #333232;
+  --c-text-2: #5d5d5d;
+  --c-text-3: #b9b9b9;
+  --c-bg: #f2f2f2;
+  --c-card: #ffffff;
+  --c-footer: #091d1b;
+  --c-footer-subtitle: #054d46;
+  --c-muted-btn: #a0a0a0;
+  --shadow-card: 3px 5px 10px rgba(0, 0, 0, 0.15);
+  --wrapper: 1160px;
+  --gutter: 16px;
+  /* Gray dotted rule used under titles and between blocks */
+  --dots: radial-gradient(circle, #d2d2d2 1.1px, transparent 1.5px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-bg);
+  color: #000;
+  font-family: var(--font-roboto), Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--c-brand);
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-brand-light);
+  outline-offset: 2px;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: calc(var(--wrapper) + 2 * var(--gutter));
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* Shared button: flat, 68px tall, light weight like the reference */
+.btn {
+  display: inline-block;
+  height: 68px;
+  padding: 0 20px;
+  border: 0;
+  background: var(--c-brand);
+  color: #fff;
+  font-size: 21px;
+  font-weight: 300;
+  line-height: 68px;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn:hover {
+  background: var(--c-brand-hover);
+}
+
+.btn[aria-disabled="true"] {
+  background: var(--c-muted-btn);
+  cursor: default;
+}
+
+.dots-bottom {
+  background-image: var(--dots);
+  background-size: 9px 4px;
+  background-repeat: repeat-x;
+  background-position: left bottom;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

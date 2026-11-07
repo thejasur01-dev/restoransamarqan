@@ -1,0 +1,178 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-card);
+  box-shadow: var(--shadow-card);
+  color: var(--c-brand);
+}
+
+.media {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  background: #1d2b2a;
+}
+
+.image {
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.hoverBtn {
+  height: 68px;
+  padding: 0 20px;
+  background: var(--c-red);
+  color: #fff;
+  font-size: 21px;
+  line-height: 68px;
+  white-space: nowrap;
+}
+
+.hoverBtnMuted {
+  background: var(--c-muted-btn);
+}
+
+/* Badges sit flush in the bottom-right corner; each has a slanted left edge */
+.status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+}
+
+.today,
+.price {
+  height: 31px;
+  padding: 0 10px 0 20px;
+  font-size: 13px;
+  line-height: 31px;
+  white-space: nowrap;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.today {
+  background: var(--c-red);
+  color: #fff;
+}
+
+.price {
+  background: var(--c-brand-light);
+  color: var(--c-text);
+}
+
+.today + .price {
+  margin-left: -10px;
+}
+
+.title {
+  height: 84px;
+  margin: 25px 25px 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  color: var(--c-text);
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 28px;
+  transition: color 0.2s;
+}
+
+.type {
+  margin: 0 25px;
+  color: var(--c-text-2);
+  font-size: 18px;
+  line-height: 50px;
+}
+
+.place {
+  display: flex;
+  flex-direction: column;
+  margin: 0 25px;
+  padding: 15px 0 20px;
+  color: var(--c-text-2);
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.venue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delimiter,
+.mobileAction {
+  display: none;
+}
+
+@media (hover: hover) {
+  .card:hover .overlay {
+    opacity: 1;
+  }
+
+  .card:hover .title {
+    color: var(--c-brand-title-hover);
+  }
+}
+
+@media (max-width: 767px) {
+  .media {
+    height: auto;
+    aspect-ratio: 360 / 200;
+  }
+
+  .overlay,
+  .desktopOnly {
+    display: none;
+  }
+
+  .today {
+    font-size: 15px;
+    height: 36px;
+    line-height: 36px;
+    padding: 0 18px 0 24px;
+  }
+
+  .title {
+    height: auto;
+    margin: 30px 25px 25px;
+    -webkit-line-clamp: 3;
+    font-size: 21px;
+  }
+
+  .place {
+    flex-direction: row;
+    flex-wrap: wrap;
+    font-size: 15px;
+    padding: 16px 0 22px;
+  }
+
+  .delimiter {
+    display: inline;
+    padding: 0 5px;
+  }
+
+  .mobileAction {
+    display: block;
+    padding: 0 25px 25px;
+  }
+
+  .mobileAction :global(.btn) {
+    display: block;
+    width: 100%;
+    font-size: 19px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
