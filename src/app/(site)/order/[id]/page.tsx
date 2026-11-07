@@ -1,0 +1,89 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { Spinner } from "@/components/Spinner";
+import { formatEventDate, formatPrice } from "@/lib/format";
+import { formatUzPhone } from "@/lib/phone";
+import { getOrder } from "@/lib/seating";
+import styles from "./page.module.css";
+
+export const metadata: Metadata = { title: "Buyurtma", robots: { index: false, follow: false } };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+async function Order({ params }: { params: PageProps<"/order/[id]">["params"] }) {
+  const { id } = await params;
+  // The unguessable order id is what grants access to this page
+  if (!UUID.test(id)) notFound();
+  const order = await getOrder(id);
+  if (!order) notFound();
+
+  const state = order.status === "paid" ? "paid" : order.status === "pending" && !order.expired ? "pending" : "closed";
+
+  return (
+    <div className={styles.panel}>
+      <p className={styles.number}>Buyurtma № {order.number}</p>
+
+      {state === "paid" && <h1 className={styles.title}>To&apos;lov qabul qilindi</h1>}
+      {state === "pending" && (
+        <>
+          <h1 className={styles.title}>Buyurtma qabul qilindi</h1>
+          <div className={styles.notice}>
+            <b>To&apos;lov kutilmoqda.</b> Onlayn to&apos;lov tizimi tez orada ulanadi. O&apos;rinlaringiz{" "}
+            {new Intl.DateTimeFormat("uz-Latn-UZ", { timeZone: "Asia/Tashkent", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(order.expiresAt)}{" "}
+            gacha saqlanadi.
+          </div>
+        </>
+      )}
+      {state === "closed" && (
+        <>
+          <h1 className={styles.title}>Buyurtma muddati tugagan</h1>
+          <p className={styles.text}>To&apos;lov o&apos;z vaqtida amalga oshirilmagani uchun o&apos;rinlar bo&apos;shatildi.</p>
+        </>
+      )}
+
+      <div className={styles.event}>
+        <Link href={`/e/${order.event.slug}`}>{order.event.title}</Link>
+        <p>
+          {formatEventDate(order.event.startsAt)} · {order.event.venueName}, {order.event.city}, {order.event.address}
+        </p>
+      </div>
+
+      <ul className={styles.items}>
+        {order.items.map((i, idx) => (
+          <li key={idx}>
+            <span>
+              {i.row}-qator, {i.place}-o&apos;rin <small>{i.section}</small>
+            </span>
+            <span>{formatPrice(i.price)}</span>
+          </li>
+        ))}
+      </ul>
+      <p className={styles.total}>
+        <span>Jami</span>
+        <b>{formatPrice(order.total)}</b>
+      </p>
+
+      <p className={styles.contact}>
+        {order.email} · {formatUzPhone(order.phone)}
+      </p>
+
+      {state === "closed" && (
+        <Link href={`/e/${order.event.slug}/buy`} className="btn">
+          Qaytadan tanlash
+        </Link>
+      )}
+    </div>
+  );
+}
+
+export default function OrderPage({ params }: PageProps<"/order/[id]">) {
+  return (
+    <div className={styles.page}>
+      <Suspense fallback={<Spinner />}>
+        <Order params={params} />
+      </Suspense>
+    </div>
+  );
+}

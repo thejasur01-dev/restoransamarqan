@@ -11,7 +11,9 @@
     "db": "tsx scripts/db.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env.local node_modules/drizzle-kit/bin.cjs migrate",
-    "db:seed": "node --env-file=.env.local --import tsx scripts/seed.ts"
+    "db:seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
+    "test:sales": "node tests/sale-api.test.mjs",
+    "test:payment": "node --env-file=.env.local --conditions=react-server --import tsx tests/payment.test.mts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",

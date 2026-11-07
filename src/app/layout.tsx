@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Roboto, Pacifico } from "next/font/google";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -32,15 +30,12 @@ export const viewport: Viewport = {
   themeColor: "#0b3d39",
 };
 
+// Site chrome (header/footer) lives in (site)/layout; the ticket purchase screen is full-viewport.
 export default function RootLayout({ children, modal }: LayoutProps<"/">) {
   return (
     <html lang="uz" className={`${roboto.variable} ${logoFont.variable}`}>
       <body>
-        <Header />
-        <main id="content" style={{ flex: 1 }}>
-          {children}
-        </main>
-        <Footer />
+        {children}
         {modal}
       </body>
     </html>

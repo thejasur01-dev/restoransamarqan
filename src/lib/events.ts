@@ -7,7 +7,7 @@ import { site } from "./site";
 const { events, venues, organizers, eventSeats, priceCategories } = schema;
 
 // An event stays in the upcoming list (and on sale) for a while after doors open.
-const UPCOMING_GRACE = sql`interval '2 hours'`;
+export const UPCOMING_GRACE = sql`interval '2 hours'`;
 
 export type EventCardData = {
   slug: string;

@@ -19,10 +19,14 @@ Bazani to'xtatish: `npm run db stop`.
 
 | Yo'l | Vazifasi |
 |---|---|
-| `src/app/page.tsx` | Afisha: `?page=`, `?past=1`, `?q=` |
-| `src/app/e/[slug]` | Tadbir sahifasi (to'g'ridan-to'g'ri havola) |
+| `src/app/(site)/page.tsx` | Afisha: `?page=`, `?past=1`, `?q=` |
+| `src/app/(site)/e/[slug]` | Tadbir sahifasi (to'g'ridan-to'g'ri havola) |
 | `src/app/@modal/(.)e/[slug]` | Ro'yxatdan bosilganda ochiladigan modal (URL o'zgaradi, "orqaga" yopadi) |
 | `src/app/api/events` | "Yana tadbirlar" tugmasi uchun JSON |
+| `src/app/(checkout)/e/[slug]/buy` | Zal sxemasi, savat, 15 daqiqalik bron, buyurtma formasi |
+| `src/app/api/events/[slug]/{seats,hold,order}` | O'rindiqlar holati, bron qilish/bo'shatish, buyurtma yaratish |
+| `src/app/(site)/order/[id]` | Buyurtma holati sahifasi |
+| `src/lib/seating.ts` | Bron, buyurtma va to'lovni tasdiqlash mantig'i (tranzaksiyalar bilan) |
 | `src/lib/events.ts` | Ma'lumot so'rovlari (`"use cache"`, 1 daqiqalik kesh, `events` tegi) |
 | `src/db/schema.ts` | Baza sxemasi: tadbirlar, joylar, o'rindiqlar, buyurtmalar |
 | `src/lib/site.ts` | Brend nomi, shior, ijtimoiy tarmoqlar |
@@ -36,3 +40,13 @@ Bazani to'xtatish: `npm run db stop`.
 - Narxlar butun so'mda (`integer`) saqlanadi.
 - Vaqtlar bazada UTC, ekranda `Asia/Tashkent` bo'yicha ko'rsatiladi (`src/lib/format.ts`).
 - O'rindiq holati: `available → held (savat, 15 daqiqa) → sold`. Muddati o'tgan `held` bo'sh hisoblanadi.
+
+## Testlar
+
+```bash
+npm run db:seed && npm run dev   # alohida terminalda
+npm run test:sales               # 30 ta xaridor bitta stol uchun poyga, limitlar, validatsiya
+npm run test:payment             # to'lovni tasdiqlash: idempotentlik, muddati o'tgan bron, takroriy tranzaksiya
+```
+
+Testlar bazadagi ma'lumotni o'zgartiradi — faqat lokal bazada ishga tushiring.

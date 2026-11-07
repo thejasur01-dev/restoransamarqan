@@ -1,0 +1,147 @@
+.wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.scroller {
+  height: 100%;
+  overflow: auto;
+  padding: 16px 16px 140px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card {
+  margin: 0 auto;
+  padding: 18px 18px 8px;
+  background: #fff;
+  border-radius: 6px;
+  transition: width 0.2s ease-out;
+}
+
+.title {
+  margin-bottom: 4px;
+  color: #999;
+  font-size: 18px;
+  text-align: center;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.table {
+  fill: #fff;
+  stroke: #cfcfcf;
+  stroke-width: 1.5;
+}
+
+.tableLabel {
+  fill: #777;
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.barIcon {
+  fill: none;
+  stroke: #bbb;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.stage {
+  fill: none;
+  stroke: #999;
+  stroke-width: 2.5;
+}
+
+.stageLabel {
+  fill: #999;
+  font-size: 20px;
+  text-anchor: middle;
+}
+
+.seat {
+  cursor: pointer;
+  outline: none;
+}
+
+.dot {
+  transition: r 0.12s;
+}
+
+@media (hover: hover) {
+  .seat:hover .dot {
+    r: 10px;
+  }
+}
+
+.seat:focus-visible .dot,
+.seat:focus-visible circle:nth-of-type(2) {
+  stroke: #333;
+  stroke-width: 2;
+}
+
+.busy {
+  cursor: progress;
+  opacity: 0.45;
+}
+
+.dimmed {
+  opacity: 0.25;
+}
+
+.zoom {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform: translateY(-50%);
+}
+
+.zoom button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  color: #555;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.zoom button:disabled {
+  color: #ccc;
+  cursor: default;
+}
+
+@media (max-width: 767px) {
+  /* Top corner on phones: the bottom is taken by the cart bar and notices */
+  .zoom {
+    right: 14px;
+    top: 18px;
+    transform: none;
+  }
+
+  .zoom button {
+    width: 38px;
+    height: 38px;
+    font-size: 21px;
+  }
+
+  .scroller {
+    padding: 10px 8px 170px;
+  }
+
+  .card {
+    padding: 10px 6px 4px;
+  }
+}

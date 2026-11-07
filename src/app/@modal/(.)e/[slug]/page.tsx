@@ -5,7 +5,7 @@ import { Modal } from "@/components/Modal";
 import { Spinner } from "@/components/Spinner";
 import { getEvent } from "@/lib/events";
 
-export { generateMetadata } from "../../../e/[slug]/page";
+export { generateMetadata } from "../../../(site)/e/[slug]/page";
 
 type Props = { params: Promise<{ slug: string }> };
 
