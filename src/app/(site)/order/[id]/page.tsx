@@ -7,6 +7,7 @@ import { Spinner } from "@/components/Spinner";
 import { formatEventDate, formatPrice } from "@/lib/format";
 import { formatUzPhone } from "@/lib/phone";
 import { formatTicketCode, getOrder } from "@/lib/seating";
+import { site } from "@/lib/site";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = { title: "Buyurtma", robots: { index: false, follow: false } };
@@ -58,7 +59,15 @@ async function Order({ params }: { params: PageProps<"/order/[id]">["params"] })
         <>
           <h1 className={styles.title}>To&apos;lov qabul qilindi</h1>
           <p className={styles.text}>
-            Kirishda chipta QR-kodini ko&apos;rsating. Chiptalar doim <Link href="/my">«Mening chiptalarim»</Link> bo&apos;limida turadi.
+            Kirishda chipta QR-kodini ko&apos;rsating.
+            {site.features.phoneLogin ? (
+              <>
+                {" "}
+                Chiptalar doim <Link href="/my">«Mening chiptalarim»</Link> bo&apos;limida turadi.
+              </>
+            ) : (
+              " Bu sahifa havolasini saqlab qo'ying."
+            )}
           </p>
         </>
       )}

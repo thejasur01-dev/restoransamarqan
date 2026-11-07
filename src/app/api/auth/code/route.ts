@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isJsonRequest, jsonError, noStore } from "@/lib/api";
+import { site } from "@/lib/site";
 import { AuthError, requestLoginCode } from "@/lib/auth";
 import { normalizeUzPhone } from "@/lib/phone";
 
@@ -7,6 +8,7 @@ const Body = z.object({ phone: z.string().max(40), viaSms: z.boolean().optional(
 
 // Sends a one-time login code to the phone (Telegram first, SMS as fallback)
 export async function POST(request: Request) {
+  if (!site.features.phoneLogin) return jsonError("not_found", "Not found", 404);
   if (!isJsonRequest(request)) return jsonError("invalid", "Noto'g'ri so'rov", 415);
   const parsed = Body.safeParse(await request.json().catch(() => null));
   const phone = parsed.success ? normalizeUzPhone(parsed.data.phone) : null;

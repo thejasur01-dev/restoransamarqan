@@ -49,17 +49,29 @@ await req("/hold", winner, { seatId: target.id, action: "remove" });
 const other = tokens.find((t) => t !== winner);
 check("released table can be taken by another buyer", (await req("/hold", other, { seatId: target.id, action: "add" })).status === 200);
 
-// 5) order validation & creation (requires a verified phone; dev mode returns the code)
-const good = { email: "Test@Example.uz", comment: "", acceptRules: true };
-check("not signed in -> 401", (await req("/order", winner, good)).status === 401);
-const sid = await signIn(`+99890${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`);
-const auth = { cookie: `cart=${winner}; sid=${sid}` };
+// 5) order validation & creation. With phone login on, orders need a session (dev mode
+// returns the code); with it off, like the reference site, email + phone come from the form.
+const phoneLogin = (await fetch("http://localhost:3000/api/auth/code", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })).status !== 404;
+console.log("phone login:", phoneLogin ? "on" : "off");
+const good = phoneLogin
+  ? { email: "Test@Example.uz", comment: "", acceptRules: true }
+  : { email: "Test@Example.uz", phone: "90 123 45 67", comment: "", acceptRules: true };
+let auth = { cookie: `cart=${winner}` };
+let sidCookie = "";
+if (phoneLogin) {
+  check("not signed in -> 401", (await req("/order", winner, good)).status === 401);
+  sidCookie = `sid=${await signIn(`+99890${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`)}`;
+  auth = { cookie: `cart=${winner}; ${sidCookie}` };
+  check("email is optional", (await req("/order", winner, { ...good, email: "" }, auth)).status === 201);
+} else {
+  check("bad phone -> 400", (await req("/order", winner, { ...good, phone: "12345" }, auth)).status === 400);
+  check("missing email -> 400", (await req("/order", winner, { ...good, email: "" }, auth)).status === 400);
+}
 check("bad email -> 400", (await req("/order", winner, { ...good, email: "x@" }, auth)).status === 400);
 check("rules not accepted -> 400", (await req("/order", winner, { ...good, acceptRules: false }, auth)).status === 400);
-check("no cart cookie -> 409", (await req("/order", null, good, { cookie: `sid=${sid}` })).status === 409);
-check("empty cart -> 409", (await req("/order", null, good, { cookie: `cart=${uuid()}; sid=${sid}` })).status === 409);
+check("no cart cookie -> 409", (await req("/order", null, good, sidCookie ? { cookie: sidCookie } : {})).status === 409);
+check("empty cart -> 409", (await req("/order", null, good, { cookie: `cart=${uuid()}${sidCookie ? `; ${sidCookie}` : ""}` })).status === 409);
 check("form post (non-JSON) -> 415", (await fetch(BASE + "/order", { method: "POST", headers: { ...auth, "content-type": "application/x-www-form-urlencoded" }, body: "a=1" })).status === 415);
-check("email is optional", (await req("/order", winner, { ...good, email: "" }, auth)).status === 201);
 const ord = await req("/order", winner, good, auth);
 const ordBody = await ord.json();
 check("order created -> 201", ord.status === 201 && ordBody.orderId, JSON.stringify(ordBody));

@@ -10,6 +10,11 @@ export const site = {
   pageSize: 9,
   legalUrl: "/rules",
   registerUrl: "/register",
+  features: {
+    // Phone + one-time-code accounts with a "My tickets" cabinet. Off for now, like the
+    // reference site; turn on once SMS (Eskiz contract) or a Telegram bot is available.
+    phoneLogin: false,
+  },
   socials: {
     telegram: "https://t.me/",
     instagram: "https://instagram.com/",

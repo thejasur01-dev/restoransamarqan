@@ -5,6 +5,15 @@ const post = (path, body, headers = {}) =>
   fetch(BASE + path, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
 const randomPhone = () => `+99890${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`;
 
+// Phone login is behind site.features.phoneLogin; when off, its endpoints and page must be closed
+if ((await post("/api/auth/code", { phone: "+998901234567" })).status === 404) {
+  check("login off: code API closed", true);
+  check("login off: verify API closed", (await post("/api/auth/verify", { phone: "+998901234567", code: "123456" })).status === 404);
+  check("login off: /my is 404", (await (await fetch(BASE + "/my")).text()).includes("Sahifa topilmadi"));
+  check("login off: no header link", !(await (await fetch(BASE + "/")).text()).includes('href="/my"'));
+  process.exit(0);
+}
+
 // Phone validation
 check("garbage phone -> 400", (await post("/api/auth/code", { phone: "12345" })).status === 400);
 check("non-JSON -> 415", (await fetch(BASE + "/api/auth/code", { method: "POST", body: "phone=1" })).status === 415);

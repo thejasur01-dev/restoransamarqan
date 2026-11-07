@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CabinetLogin, LogoutButton } from "@/components/auth/CabinetClient";
 import { Spinner } from "@/components/Spinner";
@@ -8,6 +9,7 @@ import { getCurrentCustomer } from "@/lib/auth";
 import { formatEventDate, formatPrice } from "@/lib/format";
 import { formatUzPhone } from "@/lib/phone";
 import { listCustomerOrders } from "@/lib/seating";
+import { site } from "@/lib/site";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = { title: "Mening chiptalarim", robots: { index: false, follow: false } };
@@ -39,6 +41,7 @@ function OrderCard({ order }: { order: Order }) {
 }
 
 async function Cabinet() {
+  if (!site.features.phoneLogin) notFound();
   const customer = await getCurrentCustomer();
   if (!customer) {
     return (

@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { PhoneLogin } from "@/components/auth/PhoneLogin";
 import { suggestEmail } from "@/lib/email-typo";
 import { formatEventDate, formatPrice } from "@/lib/format";
+import { formatLocalPhone, localPhoneDigits } from "@/lib/phone-input";
+import { site } from "@/lib/site";
 import { formatTimer } from "./useCountdown";
 import styles from "./CheckoutDialog.module.css";
 
@@ -30,6 +32,9 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
   const [step, setStep] = useState<"confirm" | "form">("confirm");
   const [email, setEmail] = useState("");
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
+  // Used only when phone login is off: the buyer types the number like on the reference site
+  const [phone, setPhone] = useState("");
+  const phoneLogin = site.features.phoneLogin;
   const [comment, setComment] = useState("");
   const [accept, setAccept] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -55,7 +60,12 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
       const res = await fetch(`/api/events/${slug}/order`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: email.trim() || undefined, comment, acceptRules: accept }),
+        body: JSON.stringify({
+          email: email.trim() || undefined,
+          ...(phoneLogin ? {} : { phone: `+998${phone}` }),
+          comment,
+          acceptRules: accept,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -112,7 +122,7 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
               </button>
             </div>
           </>
-        ) : !customerPhone ? (
+        ) : phoneLogin && !customerPhone ? (
           <>
             <h2 id="checkout-title" className={styles.title}>
               Telefon raqamingiz
@@ -133,20 +143,21 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
               Buyurtmani rasmiylashtirish
             </h2>
 
-            <div className={styles.verified}>
-              <span>Telefon</span>
-              <b>{prettyPhone(customerPhone)}</b>
-              <span className={styles.badge}>✓ tasdiqlangan</span>
-            </div>
+            {phoneLogin && customerPhone && (
+              <div className={styles.verified}>
+                <span>Telefon</span>
+                <b>{prettyPhone(customerPhone)}</b>
+                <span className={styles.badge}>✓ tasdiqlangan</span>
+              </div>
+            )}
 
             <label className={styles.field}>
-              <span>
-                Email <small className={styles.optional}>(ixtiyoriy)</small>
-              </span>
+              <span>Email {phoneLogin && <small className={styles.optional}>(ixtiyoriy)</small>}</span>
               <input
                 type="email"
                 inputMode="email"
                 autoComplete="email"
+                required={!phoneLogin}
                 maxLength={200}
                 value={email}
                 onChange={(e) => {
@@ -169,10 +180,26 @@ export function CheckoutDialog({ slug, title, startsAt, items, total, secondsLef
               )}
             </label>
 
+            {!phoneLogin && (
+              <label className={styles.field}>
+                <span>Telefon</span>
+                <div className={styles.phone}>
+                  <span>+998</span>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel-national"
+                    required
+                    placeholder="90 123 45 67"
+                    value={formatLocalPhone(phone)}
+                    onChange={(e) => setPhone(localPhoneDigits(e.target.value))}
+                  />
+                </div>
+              </label>
+            )}
+
             <label className={styles.field}>
-              <span>
-                Izoh <small className={styles.optional}>(ixtiyoriy)</small>
-              </span>
+              <span>Izoh</span>
               <textarea rows={2} maxLength={500} value={comment} onChange={(e) => setComment(e.target.value)} />
             </label>
 

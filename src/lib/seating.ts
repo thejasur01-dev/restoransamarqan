@@ -204,7 +204,7 @@ async function cancelPendingOrders(tx: Tx, eventId: number, token: string) {
     .where(and(eq(orders.eventId, eventId), eq(orders.holdToken, token), eq(orders.status, "pending")));
 }
 
-export type Buyer = { customerId: number; phone: string; email: string | null; comment: string | null };
+export type Buyer = { customerId: number | null; phone: string; email: string | null; comment: string | null };
 
 /** Turns the visitor's current cart into a pending order awaiting payment. */
 export async function createOrder(event: SaleEvent | null, token: string, buyer: Buyer) {
