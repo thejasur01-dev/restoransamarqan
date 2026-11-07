@@ -8,6 +8,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { sql } from "drizzle-orm";
 import * as schema from "../src/db/schema";
+import { generateHall } from "../src/lib/hall-builder";
 
 if (process.env.NODE_ENV === "production") throw new Error("Refusing to seed a production database");
 
@@ -76,41 +77,23 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-/** Two columns of 4-seat tables plus a bar counter, roughly like a lounge floor plan */
+/** Two columns of 4-seat tables, a bar counter and a stage, drawn with the admin hall builder */
+const BLOCKS: schema.HallBlock[] = [
+  { kind: "tables", id: "tables-a", section: "Stollar", x: 40, y: 40, rows: 6, cols: 2, seatsPerTable: 4, startNumber: 1, gapX: 230, gapY: 110 },
+  { kind: "bar", id: "bar-a", section: "Bar", x: 480, y: 220, seats: 8, spacing: 36 },
+  { kind: "stage", id: "stage-a", x: 120, y: 760, width: 300, label: "Sahna" },
+];
+
 function buildHall() {
-  const shapes: schema.HallLayout["shapes"] = [];
-  const seats: Array<{ section: string; row: string; place: string; groupKey: string; x: number; y: number; cat: 0 | 1 }> = [];
-  let tableNo = 0;
-  for (const colX of [120, 360]) {
-    for (let r = 0; r < 6; r++) {
-      tableNo++;
-      const x = colX;
-      const y = 110 + r * 110;
-      shapes.push({ kind: "table", x: x - 30, y: y - 18, w: 60, h: 36, label: String(tableNo) });
-      const pos = [
-        [x - 18, y - 34],
-        [x + 18, y - 34],
-        [x - 18, y + 34],
-        [x + 18, y + 34],
-      ];
-      pos.forEach(([sx, sy], i) =>
-        seats.push({ section: "Stollar", row: String(tableNo), place: String(i + 1), groupKey: `t${tableNo}`, x: sx, y: sy, cat: 0 }),
-      );
-    }
-  }
-  shapes.push({ kind: "bar", x: 560, y: 260, w: 60, h: 300 });
-  for (let i = 0; i < 8; i++) {
-    seats.push({ section: "Bar", row: "1", place: String(i + 1), groupKey: `b${i + 1}`, x: 530, y: 280 + i * 36, cat: 1 });
-  }
-  shapes.push({ kind: "stage", x: 160, y: 800, w: 300, label: "Sahna" });
-  return { layout: { width: 680, height: 860, shapes } satisfies schema.HallLayout, seats };
+  const { layout, seats } = generateHall(BLOCKS);
+  return { layout, seats: seats.map((x) => ({ ...x, groupKey: x.group, cat: x.blockId === "bar-a" ? 1 : 0 })) };
 }
 
 async function main() {
   writePosters();
 
   await db.execute(
-    sql`truncate table order_items, orders, sessions, login_codes, customers, rate_limits, event_seats, price_categories, events, venues, organizers restart identity cascade`,
+    sql`truncate table order_items, orders, admin_sessions, sessions, login_codes, customers, rate_limits, event_seats, price_categories, events, venues, organizers restart identity cascade`,
   );
 
   const [org] = await db
@@ -127,7 +110,7 @@ async function main() {
   const hall = buildHall();
   const venueRows = await db
     .insert(schema.venues)
-    .values(CITIES.map((c) => ({ name: c.venue, city: c.city, address: c.address, lat: c.lat, lng: c.lng, layout: hall.layout })))
+    .values(CITIES.map((c) => ({ name: c.venue, city: c.city, address: c.address, lat: c.lat, lng: c.lng, layout: hall.layout, blocks: BLOCKS })))
     .returning();
 
   // Anchor dates to Tashkent midnight so "today" events exist whenever the seed runs
@@ -170,6 +153,7 @@ async function main() {
         description: DESCRIPTION,
         officialUrl: "https://t.me/example",
         status: "published",
+        layout: hall.layout,
       })
       .returning();
 
@@ -184,7 +168,7 @@ async function main() {
     await db.insert(schema.eventSeats).values(
       hall.seats.map((s) => {
         // Decide per group: a table is either fully sold or fully free
-        const groupNo = Number(s.groupKey.slice(1)) + (s.groupKey[0] === "b" ? 100 : 0);
+        const groupNo = Number(s.groupKey.replace(/\D/g, "")) + (s.groupKey.startsWith("bar") ? 100 : 0);
         let status: "available" | "sold" = "available";
         if (p.sold === "all") status = "sold";
         else if (p.sold === "some" && (groupNo * 7 + n) % 3 !== 0) status = "sold";

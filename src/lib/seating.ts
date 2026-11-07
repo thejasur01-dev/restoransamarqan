@@ -41,7 +41,8 @@ export async function getSaleEvent(slug: string) {
       startsAt: events.startsAt,
       holdMinutes: events.holdMinutes,
       venueName: venues.name,
-      layout: venues.layout,
+      // The snapshot taken with the seats wins over the (possibly edited) venue plan
+      layout: sql<HallLayout | null>`coalesce(${events.layout}, ${venues.layout})`,
       onSale: sql<boolean>`${events.startsAt} >= now() - ${UPCOMING_GRACE}`,
     })
     .from(events)
@@ -350,7 +351,7 @@ export async function getOrder(orderId: string) {
 const TICKET_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
 /** 10 characters = 50 bits of randomness; uniqueness is also enforced by a database index. */
-function newTicketCode() {
+export function newTicketCode() {
   let code = "";
   for (let i = 0; i < 10; i++) code += TICKET_ALPHABET[randomInt(TICKET_ALPHABET.length)];
   return code;

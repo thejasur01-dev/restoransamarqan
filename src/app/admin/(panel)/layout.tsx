@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AdminNav } from "@/components/admin/AdminNav";
@@ -20,7 +21,7 @@ const NAV: Array<{ href: string; label: string; icon: string; permission: Permis
 async function Shell({ children }: { children: React.ReactNode }) {
   const admin = await getAdmin();
   if (!admin) redirect("/admin/login");
-  const items = NAV.filter((n) => can(admin, n.permission)).map(({ permission: _p, ...rest }) => rest);
+  const items = NAV.filter((n) => can(admin, n.permission)).map(({ href, label, icon }) => ({ href, label, icon }));
 
   return (
     <AdminNav
@@ -30,7 +31,7 @@ async function Shell({ children }: { children: React.ReactNode }) {
           <b>{admin.name}</b>
           <span>{ROLE_NAMES[admin.role]}</span>
           <div className="a-actions" style={{ marginTop: 8 }}>
-            <a href="/admin/profile">Profil</a>
+            <Link href="/admin/profile">Profil</Link>
             <form action={logoutAction}>
               <button style={{ border: 0, background: "none", padding: 0, cursor: "pointer", font: "inherit", textDecoration: "underline" }}>Chiqish</button>
             </form>
